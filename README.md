@@ -15,11 +15,12 @@ var TypeName = stronglyTyped(interface_definition, [prototype], [allowUnspecifie
 ```
 
 `interface_definition` is a plain object of the expected structure with fields containing strings to match `typeof` in the typed objects.
-Additionally those strings can be prefixed with question mark `?` to make them optional. If the field exist and is not null, it will be checked against the type.
 
-You can also use `null` or empty `{}` to indicate that the field must exist, without specifying anything else about it.
-
-You can also use `[]` to enforce field being an array (as `typeof` retrns `"object"` for arrays).
+Additional features:
+- strings used to described field can be prefixed with question mark `?` to make them optional. If the field exist and is not null, it will be checked against the type,
+- use `null` or empty `{}` to indicate that the field must exist, without specifying anything else about it,
+- use `[]` to enforce field being an array (as `typeof` returns `"object"` for arrays),
+- use "__dictionary__" as a property name inside an object to indicate that given object is meant to be dictionary/hashMap (keys being identifiers and their value being of a single schema).  
 
 _Example_
 
@@ -31,7 +32,7 @@ var Person = stronglyTyped({
         middle:"?string"
     },
     "age": "number",
-    "phoneNumber": "?string"
+    "phoneNumber": "?string",
     "favorites": []
 })
 
@@ -67,7 +68,7 @@ var Person2 = stronglyTyped({
 
 //create instance
 var moe = Person2({
-    "name": "Moe Average"
+    "name": "Moe Average",
     "favorites": [
         { "id": 1, "value": "beer" },
         { "id": 2, "value": "game" }
@@ -78,7 +79,32 @@ var moe = Person2({
 Person2.created(moe) === true
 ```
 
-More examples in tests/index.js
+Dictionary example:
+```javascript
+var Person3 = stronglyTyped({
+    "name": "string",
+    "favorites": {
+        "__dictionary__": {
+            "value": "string"        
+        }   
+        
+    }
+})
+
+//create instance
+var moe = Person3({
+    "name": "Moe Average",
+    "favorites": {
+        "fav1": { "value": "beer" },
+        "fav2": { "value": "game" }
+    }
+})
+
+//check type
+Person2.created(moe) === true
+```
+
+More examples in [tests](./tests/).
 
 ## No new keyword
 

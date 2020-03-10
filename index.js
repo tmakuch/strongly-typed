@@ -1,11 +1,12 @@
 "use strict";
+
 function validateAgainstStringDesc(descriptionVal, value) {
-    var isOptional = descriptionVal.substr(0,1) === "?";
+    var isOptional = descriptionVal.substr(0, 1) === "?";
     var typeToCheck = (isOptional ? descriptionVal.substr(1) : descriptionVal);
-    if(isOptional && (value === null || typeof value === "undefined")){
+    if (isOptional && (value === null || typeof value === "undefined")) {
         return;
     }
-    if ( typeof value !== typeToCheck) {
+    if (typeof value !== typeToCheck) {
         return ':' + (typeof value);
     }
 }
@@ -25,10 +26,20 @@ function validate(obj, desc, parent) {
         return errors;
     }
 
-    Object.keys(desc).forEach(function (key) {
-        var descriptionVal = desc[key];
+    const descKeysCount = Object.keys(desc).filter(desc.hasOwnProperty.bind(desc)).length;
+    const isDictionaryDesc = descKeysCount === 1 && !!desc["__dictionary__"];
+
+
+    if (isDictionaryDesc) {
+        Object.keys(obj).filter(obj.hasOwnProperty.bind(obj)).forEach(objKey => validateEntry(objKey, desc["__dictionary__"]));
+    } else {
+        Object.keys(desc).forEach(descKey => validateEntry(descKey, desc[descKey]));
+    }
+    return errors;
+
+    function validateEntry(key, descriptionVal) {
         if (typeof descriptionVal === "string") {
-            var errorOnStringDesc = validateAgainstStringDesc(descriptionVal, obj[key]);
+            const errorOnStringDesc = validateAgainstStringDesc(descriptionVal, obj[key]);
             if (errorOnStringDesc) {
                 errors.push(parent + key + errorOnStringDesc);
             }
@@ -38,7 +49,7 @@ function validate(obj, desc, parent) {
                     errors.push(parent + key + ':notArray');
                 } else if (descriptionVal[0]) {
                     obj[key].forEach((arrElem, idx) => {
-                        var arrParentName = parent + key + "[" + idx + "].";
+                        const arrParentName = parent + key + "[" + idx + "].";
                         errors = errors.concat(validate(arrElem, descriptionVal[0], arrParentName));
                     })
                 }
@@ -51,13 +62,12 @@ function validate(obj, desc, parent) {
             }
         }
 
-    });
-    return errors;
+    }
 }
 
 module.exports = function (desc, proto, allowExtras) {
-    var StronglyTyped = function StronglyTyped(obj) {
-        var self = Object.create(StronglyTyped.prototype, {
+    const StronglyTyped = function StronglyTyped(obj) {
+        const self = Object.create(StronglyTyped.prototype, {
             validate: {
                 value: function validateType() {
                     var errors = validate(this, desc);
@@ -70,8 +80,10 @@ module.exports = function (desc, proto, allowExtras) {
                 }
             }
         });
+        const descKeysCount = Object.keys(desc).filter(desc.hasOwnProperty.bind(desc)).length;
+        const isDictionaryDesc = descKeysCount === 1 && !!desc["__dictionary__"];
         Object.keys(obj).forEach(function (key) {
-            if (allowExtras || desc.hasOwnProperty(key)) {
+            if (allowExtras || desc.hasOwnProperty(key) || isDictionaryDesc) {
                 self[key] = obj[key];
             } else {
                 throw new TypeError("Unexpected field " + key);
