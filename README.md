@@ -20,7 +20,7 @@ Additional features:
 - strings used to described field can be prefixed with question mark `?` to make them optional. If the field exist and is not null, it will be checked against the type,
 - use `null` or empty `{}` to indicate that the field must exist, without specifying anything else about it,
 - use `[]` to enforce field being an array (as `typeof` returns `"object"` for arrays),
-- use "__dictionary__" as a property name inside an object to indicate that given object is meant to be dictionary/hashMap (keys being identifiers and their value being of a single schema).  
+- use "__dictionary__" as a property name inside an object to indicate that given object is meant to be dictionary/hashMap (keys being identifiers and their value being of a single schema). This must be the only property in the given object, otherwise it will be treated as another property.  
 
 _Example_
 
